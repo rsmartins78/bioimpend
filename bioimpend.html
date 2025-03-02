@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Bioimpedância</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Análise de Bioimpedância</h2>
+        <input type="number" id="weight" placeholder="Peso (kg)" required>
+        <input type="number" id="height" placeholder="Altura (m)" step="0.01" required>
+        <input type="number" id="age" placeholder="Idade" required>
+        <select id="gender">
+            <option value="male">Masculino</option>
+            <option value="female">Feminino</option>
+        </select>
+        <input type="number" id="fatPercentage" placeholder="% Gordura" required>
+        <input type="number" id="muscleMass" placeholder="Massa Muscular (kg)" required>
+        <input type="number" id="boneMass" placeholder="Massa Óssea (kg)" required>
+        <input type="number" id="waterPercentage" placeholder="% Água" required>
+        <input type="number" id="visceralFat" placeholder="Gordura Visceral" required>
+        <input type="number" id="basalMetabolicRate" placeholder="Metabolismo Basal (kcal)" required>
+        <button onclick="calculate()">Analisar</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function analyzeBioimpedance(data) {
+            const { weight, height, age, gender, fatPercentage, muscleMass, boneMass, waterPercentage, visceralFat, basalMetabolicRate } = data;
+            if (!weight || !height || !age || !gender || !fatPercentage || !muscleMass || !boneMass || !waterPercentage || !visceralFat || !basalMetabolicRate) {
+                throw new Error("Todos os campos devem ser preenchidos corretamente.");
+            }
+            if (weight <= 0 || height <= 0 || age <= 0 || fatPercentage < 0 || muscleMass < 0 || boneMass < 0 || waterPercentage < 0 || visceralFat < 0 || basalMetabolicRate < 0) {
+                throw new Error("Os valores inseridos devem ser positivos.");
+            }
+
+            const bmi = parseFloat((weight / (height * height)).toFixed(2));
+            let bmiCategory = '';
+            switch (true) {
+                case bmi < 18.5:
+                    bmiCategory = 'Abaixo do peso';
+                    break;
+                case bmi < 24.9:
+                    bmiCategory = 'Peso normal';
+                    break;
+                case bmi < 29.9:
+                    bmiCategory = 'Sobrepeso';
+                    break;
+                default:
+                    bmiCategory = 'Obesidade';
+            }
+
+            let fatAnalysis = '';
+            if (gender === 'male') {
+                if (fatPercentage < 6) fatAnalysis = 'Abaixo do ideal';
+                else if (fatPercentage < 24) fatAnalysis = 'Dentro do ideal';
+                else fatAnalysis = 'Acima do ideal';
+            } else {
+                if (fatPercentage < 16) fatAnalysis = 'Abaixo do ideal';
+                else if (fatPercentage < 30) fatAnalysis = 'Dentro do ideal';
+                else fatAnalysis = 'Acima do ideal';
+            }
+
+            let muscleAnalysis = muscleMass > (weight * 0.4) ? 'Boa massa muscular' : 'Baixa massa muscular';
+            let visceralFatAnalysis = visceralFat <= 12 ? 'Nível saudável de gordura visceral' : 'Nível elevado de gordura visceral';
+            let waterAnalysis = gender === 'male' ? (waterPercentage < 50 ? 'Abaixo do ideal' : waterPercentage <= 65 ? 'Dentro do ideal' : 'Acima do ideal') : (waterPercentage < 45 ? 'Abaixo do ideal' : waterPercentage <= 60 ? 'Dentro do ideal' : 'Acima do ideal');
+
+            return { bmi, bmiCategory, fatAnalysis, muscleAnalysis, visceralFatAnalysis, waterAnalysis, boneMass, basalMetabolicRate };
+        }
+
+        function calculate() {
+            try {
+                const data = {
+                    weight: parseFloat(document.getElementById("weight").value),
+                    height: parseFloat(document.getElementById("height").value),
+                    age: parseInt(document.getElementById("age").value),
+                    gender: document.getElementById("gender").value,
+                    fatPercentage: parseFloat(document.getElementById("fatPercentage").value),
+                    muscleMass: parseFloat(document.getElementById("muscleMass").value),
+                    boneMass: parseFloat(document.getElementById("boneMass").value),
+                    waterPercentage: parseFloat(document.getElementById("waterPercentage").value),
+                    visceralFat: parseFloat(document.getElementById("visceralFat").value),
+                    basalMetabolicRate: parseFloat(document.getElementById("basalMetabolicRate").value)
+                };
+                const result = analyzeBioimpedance(data);
+                document.getElementById("result").innerHTML = `IMC: ${result.bmi} (${result.bmiCategory})<br>
+                                                                Gordura: ${result.fatAnalysis}<br>
+                                                                Massa muscular: ${result.muscleAnalysis}<br>
+                                                                Gordura visceral: ${result.visceralFatAnalysis}<br>
+                                                                Água corporal: ${result.waterAnalysis}<br>
+                                                                Metabolismo basal: ${result.basalMetabolicRate} kcal`;
+            } catch (error) {
+                document.getElementById("result").innerHTML = `<span style="color:red;">${error.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>
